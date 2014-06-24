@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="buffer.c">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClCompile>
+    <ClCompile Include="buffer_iocp.c">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClCompile>
+    <ClCompile Include="event.c">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClCompile>
+    <ClCompile Include="event_iocp.c">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClCompile>
+    <ClCompile Include="evmap.c">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClCompile>
+    <ClCompile Include="bufferevent.c">
+      <Filter>BufferEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="bufferevent_async.c">
+      <Filter>BufferEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="bufferevent_filter.c">
+      <Filter>BufferEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="bufferevent_pair.c">
+      <Filter>BufferEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="bufferevent_sock.c">
+      <Filter>BufferEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="listener.c">
+      <Filter>BufferEvent</Filter>
+    </ClCompile>
+    <ClCompile Include="devpoll.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="epoll.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="epoll_sub.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="evport.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="kqueue.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="poll.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="select.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="win32select.c">
+      <Filter>SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="arc4random.c">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="evutil.c">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="evutil_rand.c">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="evutil_time.c">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="log.c">
+      <Filter>Utils</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\EventStream\buffer.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\bufferevent.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\bufferevent_struct.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\config.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\event.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\event_struct.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\hashtable.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\listener.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\queue.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\util.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EventStream\visibility.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="evbuffer-internal.h">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClInclude>
+    <ClInclude Include="event-internal.h">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClInclude>
+    <ClInclude Include="evmap-internal.h">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClInclude>
+    <ClInclude Include="iocp-internal.h">
+      <Filter>Buffer &amp; Event</Filter>
+    </ClInclude>
+    <ClInclude Include="bufferevent-internal.h">
+      <Filter>BufferEvent</Filter>
+    </ClInclude>
+    <ClInclude Include="epolltable-internal.h">
+      <Filter>SystemCall</Filter>
+    </ClInclude>
+    <ClInclude Include="changelist-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="defer-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ht-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="log-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="minheap-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="mm-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="time-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="util-internal.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Buffer &amp; Event">
+      <UniqueIdentifier>{a66c01d9-2a9d-4d01-97d3-bd1972c285ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header">
+      <UniqueIdentifier>{b52eef82-41a2-4045-8d90-97af875f2f9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BufferEvent">
+      <UniqueIdentifier>{828dd115-e89e-4fd5-939f-d6039e484a5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SystemCall">
+      <UniqueIdentifier>{889a3abb-e4b4-44c7-a97b-64bde0cf26e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{83e13ce3-4e82-4cb0-80e2-9bc0d682bdb8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
