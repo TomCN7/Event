@@ -34,19 +34,10 @@
     <ClCompile Include="listener.c">
       <Filter>BufferEvent</Filter>
     </ClCompile>
-    <ClCompile Include="devpoll.c">
-      <Filter>SystemCall</Filter>
-    </ClCompile>
     <ClCompile Include="epoll.c">
       <Filter>SystemCall</Filter>
     </ClCompile>
     <ClCompile Include="epoll_sub.c">
-      <Filter>SystemCall</Filter>
-    </ClCompile>
-    <ClCompile Include="evport.c">
-      <Filter>SystemCall</Filter>
-    </ClCompile>
-    <ClCompile Include="kqueue.c">
       <Filter>SystemCall</Filter>
     </ClCompile>
     <ClCompile Include="poll.c">
@@ -125,9 +116,6 @@
     </ClInclude>
     <ClInclude Include="epolltable-internal.h">
       <Filter>SystemCall</Filter>
-    </ClInclude>
-    <ClInclude Include="changelist-internal.h">
-      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="defer-internal.h">
       <Filter>Utils</Filter>

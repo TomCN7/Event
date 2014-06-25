@@ -55,7 +55,6 @@
 #include "evthread-internal.h"
 #include "log-internal.h"
 #include "evmap-internal.h"
-#include "changelist-internal.h"
 #include "time-internal.h"
 
 /* Since Linux 2.6.17, epoll is able to report about peer half-closed connection
@@ -70,53 +69,27 @@
 
 #include "epolltable-internal.h"
 
-#if defined(EVENT__HAVE_SYS_TIMERFD_H) &&			  \
-	defined(EVENT__HAVE_TIMERFD_CREATE) &&			  \
-	defined(HAVE_POSIX_MONOTONIC) && defined(TFD_NONBLOCK) && \
-	defined(TFD_CLOEXEC)
-/* Note that we only use timerfd if TFD_NONBLOCK and TFD_CLOEXEC are available
-   and working.  This means that we can't support it on 2.6.25 (where timerfd
-   was introduced) or 2.6.26, since 2.6.27 introduced those flags.
- */
-#define USING_TIMERFD
-#endif
 
 struct epollop {
 	struct epoll_event *events;
 	int nevents;
 	int epfd;
-#ifdef USING_TIMERFD
-	int timerfd;
-#endif
 };
 
 static void *epoll_init(struct event_base *);
 static int epoll_dispatch(struct event_base *, struct timeval *);
 static void epoll_dealloc(struct event_base *);
 
-static const struct eventop epollops_changelist = {
-	"epoll (with changelist)",
-	epoll_init,
-	event_changelist_add_,
-	event_changelist_del_,
-	epoll_dispatch,
-	epoll_dealloc,
-	1, /* need reinit */
-	EV_FEATURE_ET|EV_FEATURE_O1| EARLY_CLOSE_IF_HAVE_RDHUP,
-	EVENT_CHANGELIST_FDINFO_SIZE
-};
-
-
-static int epoll_nochangelist_add(struct event_base *base, evutil_socket_t fd,
-    short old, short events, void *p);
-static int epoll_nochangelist_del(struct event_base *base, evutil_socket_t fd,
-    short old, short events, void *p);
+static int epoll_add(struct event_base *base,
+    evutil_socket_t fd, short old, short events, void *p);
+static int epoll_del(struct event_base *base,
+    evutil_socket_t fd, short old, short events, void *p);
 
 const struct eventop epollops = {
 	"epoll",
 	epoll_init,
-	epoll_nochangelist_add,
-	epoll_nochangelist_del,
+	epoll_add,
+	epoll_del,
 	epoll_dispatch,
 	epoll_dealloc,
 	1, /* need reinit */
@@ -145,10 +118,12 @@ epoll_init(struct event_base *base)
 	/* First, try the shiny new epoll_create1 interface, if we have it. */
 	epfd = epoll_create1(EPOLL_CLOEXEC);
 #endif
-	if (epfd == -1) {
+	if (epfd == -1)
+    {
 		/* Initialize the kernel queue using the old interface.  (The
 		size field is ignored   since 2.6.8.) */
-		if ((epfd = epoll_create(32000)) == -1) {
+		if ((epfd = epoll_create(32000)) == -1)
+        {
 			if (errno != ENOSYS)
 				event_warn("epoll_create");
 			return (NULL);
@@ -156,7 +131,8 @@ epoll_init(struct event_base *base)
 		evutil_make_socket_closeonexec(epfd);
 	}
 
-	if (!(epollop = mm_calloc(1, sizeof(struct epollop)))) {
+	if (!(epollop = mm_calloc(1, sizeof(struct epollop))))
+    {
 		close(epfd);
 		return (NULL);
 	}
@@ -165,53 +141,13 @@ epoll_init(struct event_base *base)
 
 	/* Initialize fields */
 	epollop->events = mm_calloc(INITIAL_NEVENT, sizeof(struct epoll_event));
-	if (epollop->events == NULL) {
+	if (epollop->events == NULL)
+    {
 		mm_free(epollop);
 		close(epfd);
 		return (NULL);
 	}
 	epollop->nevents = INITIAL_NEVENT;
-
-	if (base->flags & EVENT_BASE_FLAG_EPOLL_USE_CHANGELIST)
-		base->evsel = &epollops_changelist;
-
-#ifdef USING_TIMERFD
-	/*
-	  The epoll interface ordinarily gives us one-millisecond precision,
-	  so on Linux it makes perfect sense to use the CLOCK_MONOTONIC_COARSE
-	  timer.  But when the user has set the new PRECISE_TIMER flag for an
-	  event_base, we can try to use timerfd to give them finer granularity.
-	*/
-	if ((base->flags & EVENT_BASE_FLAG_PRECISE_TIMER) &&
-	    base->monotonic_timer.monotonic_clock == CLOCK_MONOTONIC) {
-		int fd;
-		fd = epollop->timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC);
-		if (epollop->timerfd >= 0) {
-			struct epoll_event epev;
-			memset(&epev, 0, sizeof(epev));
-			epev.data.fd = epollop->timerfd;
-			epev.events = EPOLLIN;
-			if (epoll_ctl(epollop->epfd, EPOLL_CTL_ADD, fd, &epev) < 0) {
-				event_warn("epoll_ctl(timerfd)");
-				close(fd);
-				epollop->timerfd = -1;
-			}
-		} else {
-			if (errno != EINVAL && errno != ENOSYS) {
-				/* These errors probably mean that we were
-				 * compiled with timerfd/TFD_* support, but
-				 * we're running on a kernel that lacks those.
-				 */
-				event_warn("timerfd_create");
-			}
-			epollop->timerfd = -1;
-		}
-	} else {
-		epollop->timerfd = -1;
-	}
-#endif
-
-	evsig_init_(base);
 
 	return (epollop);
 }
@@ -348,53 +284,33 @@ epoll_apply_one_change(struct event_base *base,
 }
 
 static int
-epoll_apply_changes(struct event_base *base)
-{
-	struct event_changelist *changelist = &base->changelist;
-	struct epollop *epollop = base->evbase;
-	struct event_change *ch;
-
-	int r = 0;
-	int i;
-
-	for (i = 0; i < changelist->n_changes; ++i) {
-		ch = &changelist->changes[i];
-		if (epoll_apply_one_change(base, epollop, ch) < 0)
-			r = -1;
-	}
-
-	return (r);
-}
-
-static int
-epoll_nochangelist_add(struct event_base *base, evutil_socket_t fd,
+epoll_add(struct event_base *base, evutil_socket_t fd,
     short old, short events, void *p)
 {
 	struct event_change ch;
 	ch.fd = fd;
 	ch.old_events = old;
 	ch.read_change = ch.write_change = ch.close_change = 0;
+
 	if (events & EV_WRITE)
-		ch.write_change = EV_CHANGE_ADD |
-		    (events & EV_ET);
+		ch.write_change = EV_CHANGE_ADD | (events & EV_ET);
 	if (events & EV_READ)
-		ch.read_change = EV_CHANGE_ADD |
-		    (events & EV_ET);
+		ch.read_change = EV_CHANGE_ADD | (events & EV_ET);
 	if (events & EV_CLOSED)
-		ch.close_change = EV_CHANGE_ADD |
-		    (events & EV_ET);
+		ch.close_change = EV_CHANGE_ADD | (events & EV_ET);
 
 	return epoll_apply_one_change(base, base->evbase, &ch);
 }
 
 static int
-epoll_nochangelist_del(struct event_base *base, evutil_socket_t fd,
+epoll_del(struct event_base *base, evutil_socket_t fd,
     short old, short events, void *p)
 {
 	struct event_change ch;
 	ch.fd = fd;
 	ch.old_events = old;
 	ch.read_change = ch.write_change = ch.close_change = 0;
+
 	if (events & EV_WRITE)
 		ch.write_change = EV_CHANGE_DEL;
 	if (events & EV_READ)
@@ -413,53 +329,22 @@ epoll_dispatch(struct event_base *base, struct timeval *tv)
 	int i, res;
 	long timeout = -1;
 
-#ifdef USING_TIMERFD
-	if (epollop->timerfd >= 0) {
-		struct itimerspec is;
-		is.it_interval.tv_sec = 0;
-		is.it_interval.tv_nsec = 0;
-		if (tv == NULL) {
-			/* No timeout; disarm the timer. */
-			is.it_value.tv_sec = 0;
-			is.it_value.tv_nsec = 0;
-		} else {
-			if (tv->tv_sec == 0 && tv->tv_usec == 0) {
-				/* we need to exit immediately; timerfd can't
-				 * do that. */
-				timeout = 0;
-			}
-			is.it_value.tv_sec = tv->tv_sec;
-			is.it_value.tv_nsec = tv->tv_usec * 1000;
-		}
-		/* TODO: we could avoid unnecessary syscalls here by only
-		   calling timerfd_settime when the top timeout changes, or
-		   when we're called with a different timeval.
-		*/
-		if (timerfd_settime(epollop->timerfd, 0, &is, NULL) < 0) {
-			event_warn("timerfd_settime");
-		}
-	} else
-#endif
-	if (tv != NULL) {
+	if (tv != NULL)
+    {
 		timeout = evutil_tv_to_msec_(tv);
-		if (timeout < 0 || timeout > MAX_EPOLL_TIMEOUT_MSEC) {
+		if (timeout < 0 || timeout > MAX_EPOLL_TIMEOUT_MSEC)
+        {
 			/* Linux kernels can wait forever if the timeout is
 			 * too big; see comment on MAX_EPOLL_TIMEOUT_MSEC. */
 			timeout = MAX_EPOLL_TIMEOUT_MSEC;
 		}
 	}
 
-	epoll_apply_changes(base);
-	event_changelist_remove_all_(&base->changelist, base);
-
-	EVBASE_RELEASE_LOCK(base, th_base_lock);
-
 	res = epoll_wait(epollop->epfd, events, epollop->nevents, timeout);
-
-	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
-
-	if (res == -1) {
-		if (errno != EINTR) {
+	if (res == -1)
+    {
+		if (errno != EINTR)
+        {
 			event_warn("epoll_wait");
 			return (-1);
 		}
@@ -470,13 +355,10 @@ epoll_dispatch(struct event_base *base, struct timeval *tv)
 	event_debug(("%s: epoll_wait reports %d", __func__, res));
 	EVUTIL_ASSERT(res <= epollop->nevents);
 
-	for (i = 0; i < res; i++) {
+	for (i = 0; i < res; i++)
+    {
 		int what = events[i].events;
 		short ev = 0;
-#ifdef USING_TIMERFD
-		if (events[i].data.fd == epollop->timerfd)
-			continue;
-#endif
 
 		if (what & (EPOLLHUP|EPOLLERR)) {
 			ev = EV_READ | EV_WRITE;
@@ -512,21 +394,15 @@ epoll_dispatch(struct event_base *base, struct timeval *tv)
 	return (0);
 }
 
-
 static void
 epoll_dealloc(struct event_base *base)
 {
 	struct epollop *epollop = base->evbase;
 
-	evsig_dealloc_(base);
 	if (epollop->events)
 		mm_free(epollop->events);
 	if (epollop->epfd >= 0)
 		close(epollop->epfd);
-#ifdef USING_TIMERFD
-	if (epollop->timerfd >= 0)
-		close(epollop->timerfd);
-#endif
 
 	memset(epollop, 0, sizeof(struct epollop));
 	mm_free(epollop);

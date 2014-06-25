@@ -404,28 +404,12 @@ enum event_base_config_flag {
 	 */
 	EVENT_BASE_FLAG_NO_CACHE_TIME = 0x04,
 
-	/** If we are using the epoll backend, this flag says that it is
-	    safe to use Libevent's internal change-list code to batch up
-	    adds and deletes in order to try to do as few syscalls as
-	    possible.  Setting this flag can make your code run faster, but
-	    it may trigger a Linux bug: it is not safe to use this flag
-	    if you have any fds cloned by dup() or its variants.  Doing so
-	    will produce strange and hard-to-diagnose bugs.
-
-	    This flag can also be activated by setting the
-	    EVENT_EPOLL_USE_CHANGELIST environment variable.
-
-	    This flag has no effect if you wind up using a backend other than
-	    epoll.
-	 */
-	EVENT_BASE_FLAG_EPOLL_USE_CHANGELIST = 0x08,
-
 	/** Ordinarily, Libevent implements its time and timeout code using
 	    the fastest monotonic timer that we have.  If this flag is set,
 	    however, we use less efficient more precise timer, assuming one is
 	    present.
 	 */
-	EVENT_BASE_FLAG_PRECISE_TIMER = 0x10
+	EVENT_BASE_FLAG_PRECISE_TIMER = 0x08
 };
 
 /**

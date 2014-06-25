@@ -60,7 +60,6 @@
 #include "log-internal.h"
 #include "evmap-internal.h"
 #include "iocp-internal.h"
-#include "changelist-internal.h"
 #define HT_NO_CACHE_HASH_VALUES
 #include "ht-internal.h"
 #include "util-internal.h"
@@ -254,7 +253,6 @@ event_base_new_with_config(const struct event_config *cfg)
 	TAILQ_INIT(&base->active_later_queue);
 
 	evmap_io_initmap_(&base->io);
-	event_changelist_init_(&base->changelist);
 
 	base->evbase = NULL;
 
@@ -474,7 +472,6 @@ event_base_free_(struct event_base *base, int run_finalizers)
 	mm_free(base->activequeues);
 
 	evmap_io_clear_(&base->io);
-	event_changelist_freemem_(&base->changelist);
 
     mm_free(base);
 }

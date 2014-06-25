@@ -149,17 +149,6 @@ struct common_timeout_list
 /** Mask used to get the real tv_usec value from a common timeout. */
 #define COMMON_TIMEOUT_MICROSECONDS_MASK       0x000fffff
 
-struct event_change;
-
-/* List of 'changes' since the last call to eventop.dispatch.  Only maintained
- * if the backend is using changesets. */
-struct event_changelist
-{
-	struct event_change *changes;
-	int n_changes;
-	int changes_size;
-};
-
 TAILQ_HEAD(evcallback_list, event_callback);
 
 /* Sets up an event for processing once */
@@ -179,10 +168,6 @@ struct event_base
 	const struct eventop *evsel;
 	/** Pointer to backend-specific data. */
 	void *evbase;
-
-	/** List of changes to tell backend about at next dispatch.  Only used
-	 * by the O(1) backends. */
-	struct event_changelist changelist;
 
 	/** Number of virtual events */
 	int virtual_event_count;

@@ -45,17 +45,14 @@
     <ClCompile Include="bufferevent_pair.c" />
     <ClCompile Include="bufferevent_sock.c" />
     <ClCompile Include="buffer_iocp.c" />
-    <ClCompile Include="devpoll.c" />
     <ClCompile Include="epoll.c" />
     <ClCompile Include="epoll_sub.c" />
     <ClCompile Include="event.c" />
     <ClCompile Include="event_iocp.c" />
     <ClCompile Include="evmap.c" />
-    <ClCompile Include="evport.c" />
     <ClCompile Include="evutil.c" />
     <ClCompile Include="evutil_rand.c" />
     <ClCompile Include="evutil_time.c" />
-    <ClCompile Include="kqueue.c" />
     <ClCompile Include="listener.c" />
     <ClCompile Include="log.c" />
     <ClCompile Include="poll.c" />
@@ -75,7 +72,6 @@
     <ClInclude Include="..\..\Include\EventStream\util.h" />
     <ClInclude Include="..\..\Include\EventStream\visibility.h" />
     <ClInclude Include="bufferevent-internal.h" />
-    <ClInclude Include="changelist-internal.h" />
     <ClInclude Include="defer-internal.h" />
     <ClInclude Include="epolltable-internal.h" />
     <ClInclude Include="evbuffer-internal.h" />

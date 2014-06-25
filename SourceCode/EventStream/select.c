@@ -141,7 +141,8 @@ select_dispatch(struct event_base *base, struct timeval *tv)
 	struct selectop *sop = base->evbase;
 
 	check_selectop(sop);
-	if (sop->resize_out_sets) {
+	if (sop->resize_out_sets)
+    {
 		fd_set *readset_out=NULL, *writeset_out=NULL;
 		size_t sz = sop->event_fdsz;
 		if (!(readset_out = mm_realloc(sop->event_readset_out, sz)))
@@ -158,23 +159,17 @@ select_dispatch(struct event_base *base, struct timeval *tv)
 		sop->resize_out_sets = 0;
 	}
 
-	memcpy(sop->event_readset_out, sop->event_readset_in,
-	       sop->event_fdsz);
-	memcpy(sop->event_writeset_out, sop->event_writeset_in,
-	       sop->event_fdsz);
+	memcpy(sop->event_readset_out, sop->event_readset_in, sop->event_fdsz);
+	memcpy(sop->event_writeset_out, sop->event_writeset_in, sop->event_fdsz);
 
 	nfds = sop->event_fds+1;
 
-	EVBASE_RELEASE_LOCK(base, th_base_lock);
-
-	res = select(nfds, sop->event_readset_out,
-	    sop->event_writeset_out, NULL, tv);
-
-	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
+	res = select(nfds, sop->event_readset_out, sop->event_writeset_out, NULL, tv);
 
 	check_selectop(sop);
 
-	if (res == -1) {
+	if (res == -1)
+    {
 		if (errno != EINTR) {
 			event_warn("select");
 			return (-1);
@@ -187,7 +182,8 @@ select_dispatch(struct event_base *base, struct timeval *tv)
 
 	check_selectop(sop);
 	i = evutil_weakrand_range_(&base->weakrand_seed, nfds);
-	for (j = 0; j < nfds; ++j) {
+	for (j = 0; j < nfds; ++j)
+    {
 		if (++i >= nfds)
 			i = 0;
 		res = 0;
@@ -334,8 +330,6 @@ select_free_selectop(struct selectop *sop)
 static void
 select_dealloc(struct event_base *base)
 {
-	evsig_dealloc_(base);
-
 	select_free_selectop(base->evbase);
 }
 

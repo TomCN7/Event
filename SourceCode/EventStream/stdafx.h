@@ -13,7 +13,6 @@
 #ifdef WIN32
 #include <crtdbg.h>
 #endif
-#include "KGStdAfx.h"
 
 #ifdef WIN32
 #define _WIN32_WINNT    0x0500
